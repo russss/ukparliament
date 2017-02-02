@@ -1,33 +1,25 @@
-from functools import total_ordering
 import urllib.parse
 import requests
-from dateutil.parser import parse as parse_date
 
-
-def parse_data(data):
-    if type(data) == list:
-        data = data[0]
-    if '_datatype' in data:
-        if data['_datatype'] == 'dateTime':
-            return parse_date(data['_value'])
-    else:
-        return data['_value']
+from .resource import Bill, EDM, Division, parse_data
 
 
 class Parliament(object):
     def __init__(self):
         self.http = requests.Session()
-
-    @property
-    def commons(self):
-        return Commons(self)
-
-    @property
-    def lords(self):
-        return House("Lords", self)
+        self.commons = Commons(self)
+        self.lords = House("Lords", self)
 
     def get_bills(self, limit=50, page=0):
-        pass
+        res = self.get('bills.json', limit, page)
+        for item in res['items']:
+            b = Bill(self)
+            b.resource = item['_about']
+            b.title = item['title']
+            b.home_page = item['homePage']
+            b.type = item['billType']
+            b.date = parse_data(item['date']).date()
+            yield b
 
     def get(self, path, limit=None, page=None, **kwargs):
         params = {}
@@ -85,59 +77,3 @@ class Commons(House):
             edm.primary_sponsor = item['primarySponsorPrinted']
             edm.signatures = item['numberOfSignatures']
             yield edm
-
-
-@total_ordering
-class Division(object):
-    def __init__(self, house):
-        self.house = house
-        self.parl = house.parl
-        self.data_fetched = False
-
-    def fetch_data(self):
-        div_id = self.resource.split('/')[-1]
-        res = self.parl.get("%sdivisions/id/%s.json" % (self.house.name.lower(), div_id))
-        data = res['primaryTopic']
-        if self.house.name == 'Commons':
-            self.abstain = int(parse_data(data['AbstainCount']))
-            self.ayes = int(parse_data(data['AyesCount']))
-            self.did_not_vote = int(parse_data(data['Didnotvotecount']))
-            self.error_vote = int(parse_data(data['Errorvotecount']))
-            self.margin = int(parse_data(data['Margin']))
-            self.noes = int(parse_data(data['Noesvotecount']))
-            self.non_eligible = int(parse_data(data['Noneligiblecount']))
-            self.suspended_expelled = int(parse_data(data['Suspendedorexpelledvotescount']))
-        elif self.house.name == 'Lords':
-            self.contents = int(data['officialContentsCount'])
-            self.not_contents = int(data['officialNotContentsCount'])
-        self.data_fetched = True
-
-    @property
-    def passed(self):
-        if self.house.name == 'Commons':
-            return self.ayes > self.noes
-        elif self.house.name == 'Lords':
-            return self.contents > self.not_contents
-
-    def __getattr__(self, name):
-        if not self.data_fetched:
-            self.fetch_data()
-            res = getattr(self, name)
-            if res is None:
-                raise AttributeError()
-            return res
-        raise AttributeError()
-
-    def __eq__(self, other):
-        return type(other) == type(self) and other.uin == self.uin
-
-    def __gt__(self, other):
-        return other.uin > self.uin
-
-    def __repr__(self):
-        return '<%s division: "%s" on %s>' % (self.house.name, self.title, self.date)
-
-
-class EDM(object):
-    def __repr__(self):
-        return '<EDM %s: "%s">' % (self.number, self.title)

@@ -1,8 +1,9 @@
-A client for the [UK parliament API](http://www.data.parliament.uk/).
+[![PyPI version](https://badge.fury.io/py/ukparliament.svg)](https://badge.fury.io/py/ukparliament)
+
+A client for the [UK Parliament API](http://www.data.parliament.uk/).
 Python 3 only, contributions welcome.
 
 Currently supports:
-
 * Commons and Lords divisions
 * Early Day Motions
 
