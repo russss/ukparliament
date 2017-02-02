@@ -1,6 +1,11 @@
 A client for the [UK parliament API](http://www.data.parliament.uk/).
 Python 3 only, contributions welcome.
 
+Currently supports:
+
+* Commons and Lords divisions
+* Early Day Motions
+
 # Installing
 
     pip install ukparliament
