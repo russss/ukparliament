@@ -1,4 +1,5 @@
 from functools import total_ordering
+import urllib.parse
 import requests
 from dateutil.parser import parse as parse_date
 
@@ -25,8 +26,20 @@ class Parliament(object):
     def lords(self):
         return House("Lords", self)
 
-    def get(self, path):
-        res = self.http.get("http://lda.data.parliament.uk/%s" % path)
+    def get_bills(self, limit=50, page=0):
+        pass
+
+    def get(self, path, limit=None, page=None, **kwargs):
+        params = {}
+        if limit is not None:
+            params['_pageSize'] = limit
+        if page is not None:
+            params['_page'] = page
+        params.update(kwargs)
+        url = "http://lda.data.parliament.uk/%s" % path
+        if len(params) > 0:
+            url = url + "?" + urllib.parse.urlencode(params)
+        res = self.http.get(url)
         res.raise_for_status()
         data = res.json()
         return data['result']
@@ -38,7 +51,7 @@ class House(object):
         self.parl = parl
 
     def recent_divisions(self, limit=50, page=0, since=None):
-        res = self.parl.get("%sdivisions.json?_pageSize=%s&_page=%s" % (self.name.lower(), limit, page))
+        res = self.parl.get("%sdivisions.json" % self.name.lower(), limit, page)
         divisions = []
         for item in res['items']:
             if since is not None and item['uin'] <= since:
@@ -59,7 +72,7 @@ class Commons(House):
         self.parl = parl
 
     def get_edms(self, limit=50, page=0):
-        res = self.parl.get("edms.json?_pageSize=%s&_page=%s" % (limit, page))
+        res = self.parl.get("edms.json", limit, page)
         for item in res['items']:
             edm = EDM()
             edm.title = item['title']
