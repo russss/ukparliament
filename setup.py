@@ -8,10 +8,14 @@ version = {}
 with open(path.join(here, 'ukparliament', "__init__.py")) as fp:
     exec(fp.read(), version)
 
+with open('README.md') as f:
+    long_description = f.read()
 
 setup(name='ukparliament',
       version=version['__version__'],
       description='UK Parliament API Client',
+      long_description=long_description,
+      long_description_content_type='text/markdown',
       license='MIT',
       author='Russ Garrett',
       author_email='russ@garrett.co.uk',
