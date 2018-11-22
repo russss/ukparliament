@@ -105,7 +105,7 @@ class House(object):
             if since is not None and item["uin"] <= since:
                 continue
             div = Division(self)
-            div.title = item["title"]
+            div.title = item["title"].strip()
             div.uin = item["uin"]
             div.resource = item["_about"]
             div.date = parse_data(item["date"]).date()
