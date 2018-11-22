@@ -76,7 +76,9 @@ class Division(Resource):
         return type(other) == type(self) and other.uin == self.uin
 
     def __gt__(self, other):
-        return other.uin > self.uin
+        if self.date == other.date:
+            return self.uin > other.uin
+        return other.date > self.date
 
     def __repr__(self):
         return '<%s division: "%s" on %s>' % (self.house.name, self.title, self.date)
