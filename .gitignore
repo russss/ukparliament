@@ -92,3 +92,4 @@ ENV/
 
 .vagrant/
 README.rst
+*_cache/

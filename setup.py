@@ -19,7 +19,7 @@ setup(name='ukparliament',
       classifiers=[
           'Development Status :: 3 - Alpha',
           'License :: OSI Approved :: MIT License',
-          'Programming Language :: Python :: 3'
+          'Programming Language :: Python :: 3 :: Only'
       ],
       keywords='parliament democracy uk',
       packages=['ukparliament'],
