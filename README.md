@@ -1,4 +1,5 @@
 [![PyPI version](https://badge.fury.io/py/ukparliament.svg)](https://badge.fury.io/py/ukparliament)
+[![Build Status](https://travis-ci.org/russss/ukparliament.svg?branch=master)](https://travis-ci.org/russss/ukparliament)
 
 A client for the [UK Parliament API](http://www.data.parliament.uk/).
 Python 3 only, contributions welcome.
