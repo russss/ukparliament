@@ -105,7 +105,7 @@ class Members(object):
         for mem in data.iter("Member"):
             obj = self.from_id(int(mem.get("Member_Id")))
             obj._populate_data(mem)
-            members.append(members)
+            members.append(obj)
         return members
 
 
