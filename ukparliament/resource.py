@@ -155,7 +155,11 @@ class Member(Resource):
         self.start_date = parse_date_element(data.find("HouseStartDate"))
         self.end_date = parse_date_element(data.find("HouseEndDate"))
         self.gender = data.find("Gender").text
-        self.constituency = data.find("MemberFrom").text
+        if self.house.name == 'Commons':
+            self.constituency = data.find("MemberFrom").text
+        else:
+            # The type of peer is in the MemberFrom field here..
+            self.member_type = data.find("MemberFrom").text
         self._data_fetched = True
 
     def __repr__(self):

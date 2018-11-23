@@ -3,7 +3,7 @@ import requests
 import datetime
 import xml.etree.ElementTree as ET
 
-from .resource import Bill, EDM, Division, Member, parse_data
+from .resource import Bill, EDM, Division, Member, parse_data, MemberList
 from .parties import Parties
 
 
@@ -98,13 +98,15 @@ class Members(object):
         member.party = self.parl.parties.from_name(data["memberParty"])
         return member
 
-    def current(self):
+    def current(self) -> MemberList:
         """ Fetch all current members of the house. """
         data = self.parl.get_members(house=self.house.name)
+        members = MemberList()
         for mem in data.iter("Member"):
             obj = self.from_id(int(mem.get("Member_Id")))
             obj._populate_data(mem)
-            yield obj
+            members.append(members)
+        return members
 
 
 class House(object):
