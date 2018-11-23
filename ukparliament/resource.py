@@ -92,7 +92,7 @@ class Division(Resource):
 
     def __gt__(self, other):
         if self.date == other.date:
-            return self.uin > other.uin
+            return other.uin > self.uin
         return other.date > self.date
 
     def __repr__(self):
