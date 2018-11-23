@@ -27,5 +27,5 @@ setup(name='ukparliament',
       ],
       keywords='parliament democracy uk',
       packages=['ukparliament'],
-      install_requires=['requests', 'python-dateutil'],
+      install_requires=['requests', 'python-dateutil==2.5.3'],
       )

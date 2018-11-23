@@ -1,6 +1,7 @@
 test:
-	black --check ./ukparliament
+	black --check -q ./ukparliament
 	flake8 ./ukparliament
+	mypy ./ukparliament
 #	pytest ./ukparliament
 
 upload:

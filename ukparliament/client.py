@@ -1,20 +1,25 @@
 import urllib.parse
 import requests
 import datetime
-import re
+import xml.etree.ElementTree as ET
 
 from .resource import Bill, EDM, Division, Member, parse_data
 from .parties import Parties
 
 
 class Parliament(object):
+    LDA_ENDPOINT = "http://lda.data.parliament.uk/"
+    MEMBERS_NAMES_ENDPOINT = (
+        "http://data.parliament.uk/membersdataplatform/services/mnis/members/query/"
+    )
+
     def __init__(self):
         self.http = requests.Session()
         self.commons = Commons(self)
         self.lords = House("Lords", self)
         self.parties = Parties(self)
 
-    def get_bills(self, limit=50, page=0):
+    def get_bills(self, limit: int = 50, page: int = 0):
         res = self.get("bills.json", limit, page)
         for item in res["items"]:
             b = Bill(self)
@@ -25,20 +30,31 @@ class Parliament(object):
             b.date = parse_data(item["date"]).date()
             yield b
 
-    def get(self, path, limit=None, page=None, additional_params={}):
+    def get(self, path: str, limit: int = None, page: int = None, additional_params={}):
+        """ Make a request to the Linked Data API. Returns a python data structure. """
         params = {}
         if limit is not None:
             params["_pageSize"] = limit
         if page is not None:
             params["_page"] = page
         params.update(additional_params)
-        url = "http://lda.data.parliament.uk/%s" % path
+        url = self.LDA_ENDPOINT + path
         if len(params) > 0:
             url = url + "?" + urllib.parse.urlencode(params)
         res = self.http.get(url)
         res.raise_for_status()
         data = res.json()
         return data["result"]
+
+    def get_members(self, **kwargs):
+        """ Make a request to the Members Names API with the kwargs as parameters.
+            Parameter documentation: http://data.parliament.uk/membersdataplatform/memberquery.aspx
+            Returns an etree object of the XML
+        """
+        url = self.MEMBERS_NAMES_ENDPOINT
+        url += "|".join(k + "=" + str(v) for k, v in kwargs.items())
+        res = self.http.get(url)
+        return ET.fromstring(res.text)
 
 
 class Members(object):
@@ -54,35 +70,48 @@ class Members(object):
         return self._members[member_id]
 
     def from_url(self, url: str) -> Member:
-        """ Return a member from a data URL, e.g. http://data.parliament.uk/members/4637
+        """ Return a member from a data URL, e.g.:
+            Commons: http://data.parliament.uk/members/4637
+            Lords: http://data.parliament.uk/resources/members/api/lords/id/631
+            (why are they different?)
         """
-        res = re.match(r"^http://data.parliament.uk/members/([0-9]+)$", url)
-        if not res:
-            raise ValueError("Invalid member URL: %s" % url)
-        return self.from_id(int(res.groups(1)[0]))
+        return self.from_id(int(url.split("/")[-1]))
 
-    def from_vote(self, data: dict):
+    def from_vote(self, data: dict) -> Member:
         """ Return a member from a short summary of that member, importing name and party
             from the summary to reduce additional requests.
         """
-        member = self.from_url(data["member"][0]["_about"])
-        member.display_name = data["memberPrinted"]["_value"]
+        if type(data["member"][0]) == dict:
+            # Commons
+            member = self.from_url(data["member"][0]["_about"])
+        else:
+            # Lords
+            member = self.from_url(data["member"][0])
+
+        if "memberPrinted" in data:
+            # Commons
+            member.display_name = data["memberPrinted"]["_value"]
+        else:
+            # Lords
+            member.display_name = data["memberRank"] + " " + data["memberTitle"]
+
         member.party = self.parl.parties.from_name(data["memberParty"])
         return member
 
+    def current(self):
+        """ Fetch all current members of the house. """
+        data = self.parl.get_members(house=self.house.name)
+        for mem in data.iter("Member"):
+            obj = self.from_id(int(mem.get("Member_Id")))
+            obj._populate_data(mem)
+            yield obj
+
 
 class House(object):
-    def __init__(self, name, parl):
+    def __init__(self, name: str, parl):
         self.name = name
         self.parl = parl
         self.members = Members(self)
-
-    def get_members(self, limit=50, page=0):
-        res = self.parl.get("%smembers.json" % self.name.lower(), limit, page)
-        for item in res["items"]:
-            m = Member()
-            m.full_name = parse_data(item["fullName"])
-            yield m
 
     def recent_divisions(
         self, limit: int = 50, page: int = 0, since: str = None, cachebust: bool = False
