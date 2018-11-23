@@ -20,6 +20,7 @@ PARTIES = [
     ("Independent", [], "IND"),
     ("Crossbench", [], "XB"),
     ("Non-affiliated", [], "NA"),
+    ("Bishops", [], "B")
 ]
 
 
