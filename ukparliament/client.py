@@ -128,7 +128,7 @@ class House(object):
             params["min-uin"] = since
 
         if cachebust:
-            params["max-date"] = datetime.datetime.utcnow().isoformat()
+            params["max-date"] = (datetime.datetime.utcnow() + datetime.timedelta(hours=24)).isoformat()
 
         res = self.parl.get("%sdivisions.json" % self.name.lower(), limit, page, params)
         divisions = []
