@@ -1,5 +1,4 @@
-[![PyPI version](https://badge.fury.io/py/ukparliament.svg)](https://badge.fury.io/py/ukparliament)
-[![Build Status](https://travis-ci.org/russss/ukparliament.svg?branch=master)](https://travis-ci.org/russss/ukparliament)
+**DEPRECATED: The data.parliament.uk API is now unmaintained and is outdated in many cases, so this package is also now deprecated.**
 
 A client for the [UK Parliament API](http://www.data.parliament.uk/).
 Python 3 only, contributions welcome.
